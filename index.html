@@ -84,6 +84,9 @@
   @keyframes pulse-o { 0%,100% { outline-color: #ffb84d; } 50% { outline-color: #ffdd99; } }
   .borrow-note { font-size: 1.7rem; color: #d9534f; font-weight: bold; }
   .ten-note { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); font-size: 1.3rem; color: #d9534f; white-space: nowrap; }
+  .borrow-one { font-size: 0.55em; color: #d9534f; margin-right: 2px; vertical-align: 8%; }
+  .col-hl { background: #fff3cd; border-radius: 12px; box-shadow: 0 0 0 6px #fff3cd; }
+  .ans-cell.col-hl { box-shadow: none; }
 
   /* ===== ガイド ===== */
   .guide {
@@ -340,8 +343,8 @@
       <div class="cell borrow-target hint" id="h-at">${at}</div>
       <div class="cell" id="h-ao">${ao}</div>
       <div class="cell op">−</div>
-      <div class="cell">${bt > 0 ? bt : ''}</div>
-      <div class="cell">${bo}</div>
+      <div class="cell" id="h-bt">${bt > 0 ? bt : ''}</div>
+      <div class="cell" id="h-bo">${bo}</div>
       <div class="hr-line"></div>
       <div class="cell"></div>
       <div class="${needTensCell ? 'ans-cell' : 'ans-cell empty-slot'}" id="h-ans-t"></div>
@@ -358,9 +361,12 @@
     atEl.classList.remove('hint');
     atEl.classList.add('digit-slash', 'digit-faded');
     $('h-borrow').textContent = at - 1;                // 繰り下げ後の十の位を上に書く
-    $('h-ten-note').innerHTML = `<span class="borrow-note">10</span>`; // 一の位の上に10
+    // 一の位を「1○」に書きかえて、10いくつになったことを見せる
+    $('h-ao').innerHTML = `<span class="borrow-one">1</span>${ao}`;
     hStep = 1;
     $('h-ans-o').classList.add('current');
+    // いま計算している一の位の列をハイライト
+    ['h-ao', 'h-bo', 'h-ans-o'].forEach(id => $(id).classList.add('col-hl'));
     guideH(`くりさげたから、一のくらいは 10 と ${ao} で「${10 + ao} − ${bo}」。こたえを おしてね!`);
   }
 
@@ -380,9 +386,12 @@
       if (d === ansO) {
         const c = $('h-ans-o');
         c.textContent = d; c.classList.remove('current'); c.classList.add('done');
+        ['h-ao', 'h-bo', 'h-ans-o'].forEach(id => $(id).classList.remove('col-hl'));
         if (ansT > 0) {
           hStep = 2;
           $('h-ans-t').classList.add('current');
+          // 十の位の列にハイライトを移す
+          ['h-borrow', 'h-bt', 'h-ans-t'].forEach(id => $(id).classList.add('col-hl'));
           guideH(`せいかい!つぎは 十のくらい。くりさげたから「${at - 1} − ${bt}」だよ。`, 'ok');
         } else {
           guideH(`せいかい!十のくらいは ${at - 1} − ${bt} = 0 だから、なにも かかないよ。こたえは ${prob.ans}!`, 'ok');
